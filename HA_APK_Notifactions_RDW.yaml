@@ -1,6 +1,6 @@
 blueprint:
-  name: APK-vervaldatum herinnering + vernieuwing (1.1)
-  description: Stuur dagelijks een melding als APK bijna verloopt én bij vernieuwing.
+  name: APK-vervaldatum herinnering + vernieuwing (1.2)
+  description: Stuur dagelijks een melding als APK bijna verloopt én bij vernieuwing. (1/2)
   domain: automation
   input:
     apk_sensors:
@@ -13,16 +13,12 @@ blueprint:
             - domain: sensor
     notify_service:
       name: Notify service
-      description: Kies de notify-service die de melding moet ontvangen.
+      description: Typ de naam van de notify-service, zoals notify.mobile_app_xiaomi_tvs.
       selector:
-        select:
-          options:
-            - notify.mobile_app_xiaomi_tvs
-            - notify.mobile_app_pixel_7_pro
-            - notify.notify
-            - notify.telegram_notify
-            - notify.email_notify
-          custom_value: true
+        text:
+          type: text
+          multiline: false
+          suggested_value: notify.notify
     check_time:
       name: Tijdstip van controle
       description: Dagelijks tijdstip waarop de controle plaatsvindt.
@@ -71,10 +67,8 @@ action:
                       sequence:
                         - service: "{{ notify_service }}"
                           data:
-                            title: APK verloopt binnenkort
-                            message: >
-                              De APK van {{ sensor_naam }} verloopt op {{ vervaldatum }}.
-                              Regel op tijd een keuring!
+                            title: APK herinnering
+                            message: "APK van {{ sensor_naam }} verloopt op {{ vervaldatum }}. Regel een keuring."
       - conditions:
           - condition: template
             value_template: "{{ trigger.platform == 'state' }}"
@@ -91,6 +85,5 @@ action:
           - service: "{{ notify_service }}"
             data:
               title: APK vernieuwd
-              message: >
-                De APK van {{ sensor_naam }} is vernieuwd naar {{ vervaldatum }}.
-                Fijn dat je weer een tijdje vooruit kunt!
+              message: "APK van {{ sensor_naam }} vernieuwd naar {{ vervaldatum }}."
+mode: single
