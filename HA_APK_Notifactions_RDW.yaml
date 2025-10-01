@@ -13,9 +13,16 @@ blueprint:
             - domain: sensor
     notify_service:
       name: Notify service
-      description: De notify-service die de melding moet ontvangen.
+      description: Kies de notify-service die de melding moet ontvangen.
       selector:
-        text:
+        select:
+          options:
+            - notify.mobile_app_xiaomi_tvs
+            - notify.mobile_app_pixel_7_pro
+            - notify.notify
+            - notify.telegram_notify
+            - notify.email_notify
+          custom_value: true
     check_time:
       name: Tijdstip van controle
       description: Dagelijks tijdstip waarop de controle plaatsvindt.
@@ -86,3 +93,4 @@ action:
               title: APK vernieuwd
               message: >
                 De APK van {{ sensor_naam }} is vernieuwd naar {{ vervaldatum }}.
+                Fijn dat je weer een tijdje vooruit kunt!
