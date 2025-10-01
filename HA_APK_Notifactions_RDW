@@ -1,0 +1,88 @@
+blueprint:
+  name: APK-vervaldatum herinnering + vernieuwing
+  description: Stuur dagelijks een melding als APK bijna verloopt én bij vernieuwing.
+  domain: automation
+  input:
+    apk_sensors:
+      name: APK sensoren
+      description: Selecteer de sensoren die de APK-vervaldatum bevatten (formaat YYYY-MM-DD).
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: sensor
+    notify_service:
+      name: Notify service
+      description: De notify-service die de melding moet ontvangen.
+      selector:
+        text:
+    check_time:
+      name: Tijdstip van controle
+      description: Dagelijks tijdstip waarop de controle plaatsvindt.
+      default: "10:00:00"
+      selector:
+        time:
+    days_before_expiry:
+      name: Dagen vóór vervaldatum
+      description: Aantal dagen vóór de APK-vervaldatum waarop je een melding wilt ontvangen.
+      default: 30
+      selector:
+        number:
+          min: 1
+          max: 365
+          unit_of_measurement: dagen
+
+variables:
+  today: "{{ now().date() }}"
+  notify_service: !input notify_service
+  days_before: !input days_before_expiry
+
+trigger:
+  - platform: time
+    at: !input check_time
+  - platform: state
+    entity_id: !input apk_sensors
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.platform == 'time' }}"
+        sequence:
+          - repeat:
+              for_each: !input apk_sensors
+              sequence:
+                - variables:
+                    vervaldatum: "{{ states(repeat.item) }}"
+                    sensor_naam: "{{ repeat.item }}"
+                - choose:
+                    - conditions:
+                        - condition: template
+                          value_template: >
+                            {% set datum = strptime(vervaldatum, '%Y-%m-%d') %}
+                            {{ datum.date() <= today + timedelta(days=days_before) }}
+                      sequence:
+                        - service: "{{ notify_service }}"
+                          data:
+                            title: APK verloopt binnenkort
+                            message: >
+                              De APK van {{ sensor_naam }} verloopt op {{ vervaldatum }}.
+                              Regel op tijd een keuring!
+      - conditions:
+          - condition: template
+            value_template: "{{ trigger.platform == 'state' }}"
+        sequence:
+          - variables:
+              vervaldatum: "{{ states(trigger.entity_id) }}"
+              sensor_naam: "{{ trigger.entity_id }}"
+              oud_datum: "{{ trigger.from_state.state }}"
+          - condition: template
+            value_template: >
+              {% set nieuw = strptime(vervaldatum, '%Y-%m-%d') %}
+              {% set oud = strptime(oud_datum, '%Y-%m-%d') %}
+              {{ nieuw > oud and nieuw.date() > today }}
+          - service: "{{ notify_service }}"
+            data:
+              title: APK vernieuwd
+              message: >
+                De APK van {{ sensor_naam }} is vernieuwd naar {{ vervaldatum }}.
