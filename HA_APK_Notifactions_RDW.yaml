@@ -1,5 +1,5 @@
 blueprint:
-  name: APK-vervaldatum herinnering + vernieuwing
+  name: APK-vervaldatum herinnering + vernieuwing (1.1)
   description: Stuur dagelijks een melding als APK bijna verloopt én bij vernieuwing.
   domain: automation
   input:
