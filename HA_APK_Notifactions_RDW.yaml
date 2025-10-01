@@ -1,6 +1,6 @@
 blueprint:
-  name: APK-vervaldatum herinnering + vernieuwing (1.2)
-  description: Stuur dagelijks een melding als APK bijna verloopt én bij vernieuwing. (1/2)
+  name: APK-vervaldatum herinnering + vernieuwing (v2.1)
+  description: Stuur dagelijks een melding als APK bijna verloopt én bij vernieuwing.
   domain: automation
   input:
     apk_sensors:
@@ -13,12 +13,9 @@ blueprint:
             - domain: sensor
     notify_service:
       name: Notify service
-      description: Typ de naam van de notify-service, zoals notify.mobile_app_xiaomi_tvs.
+      description: Voer de notify-service in die de melding moet ontvangen (bijv. notify.mobile_app_xiaomi_tvs).
       selector:
         text:
-          type: text
-          multiline: false
-          suggested_value: notify.notify
     check_time:
       name: Tijdstip van controle
       description: Dagelijks tijdstip waarop de controle plaatsvindt.
@@ -67,8 +64,8 @@ action:
                       sequence:
                         - service: "{{ notify_service }}"
                           data:
-                            title: APK herinnering
-                            message: "APK van {{ sensor_naam }} verloopt op {{ vervaldatum }}. Regel een keuring."
+                            title: "APK verloopt binnenkort"
+                            message: "De APK van {{ sensor_naam }} verloopt op {{ vervaldatum }}. Regel op tijd een keuring."
       - conditions:
           - condition: template
             value_template: "{{ trigger.platform == 'state' }}"
@@ -84,6 +81,5 @@ action:
               {{ nieuw > oud and nieuw.date() > today }}
           - service: "{{ notify_service }}"
             data:
-              title: APK vernieuwd
-              message: "APK van {{ sensor_naam }} vernieuwd naar {{ vervaldatum }}."
-mode: single
+              title: "APK vernieuwd"
+              message: "De APK van {{ sensor_naam }} is vernieuwd naar {{ vervaldatum }}."
